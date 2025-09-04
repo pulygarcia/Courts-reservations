@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeOrmConfig';
 import { UsersModule } from './users/users.module';
+import { CourtsModule } from './courts/courts.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { UsersModule } from './users/users.module';
       useFactory: typeOrmConfig,
       inject: [ConfigService]
     }),
-    UsersModule
+    UsersModule,
+    CourtsModule,
+    ReservationsModule
   ],
   controllers: [AppController],
   providers: [AppService],

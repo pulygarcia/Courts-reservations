@@ -5,9 +5,12 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from 'src/users/jwt-strategy';
 
 @Module({
     imports: [
+        PassportModule,
         TypeOrmModule.forFeature([User]),
         JwtModule.registerAsync({
             global: true,
@@ -19,7 +22,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             }),
         })
     ],
-    providers: [UsersService],
+    providers: [JwtStrategy,UsersService],
     controllers: [UsersController],
+    exports: [JwtModule, PassportModule]
 })
 export class UsersModule {}

@@ -7,10 +7,10 @@ export class Reservation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Court, (court) => court.reservations)
+  @ManyToOne(() => Court, (court) => court.reservations, {nullable: false})
   court: Court;
 
-  @ManyToOne(() => User, (user) => user.reservations)
+  @ManyToOne(() => User, (user) => user.reservations, {nullable: false})
   user: User;
 
   @Column({ type: 'date' })
