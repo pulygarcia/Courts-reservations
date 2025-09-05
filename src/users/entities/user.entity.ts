@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Reservation } from 'src/reservations/entities/reservation.entity';
-import { FixedReservation } from 'src/fixed-reservations/entities/fixed.reservation.entity';
+import { FixedReservation } from 'src/fixed-reservations/entities/fixed-reservation.entity';
 
 @Entity()
 export class User {

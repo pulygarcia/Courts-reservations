@@ -25,9 +25,11 @@ export class ReservationsController {
     return this.reservationsService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto) {
-    return this.reservationsService.update(+id, updateReservationDto);
+  update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto, @Req() req) {
+    const user = req.user.id;
+    return this.reservationsService.update(+id, updateReservationDto, user);
   }
 
   @Delete(':id')

@@ -1,3 +1,4 @@
+
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Court } from 'src/courts/entities/court.entity';
 import { User } from 'src/users/entities/user.entity';

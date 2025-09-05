@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { LessThan, MoreThan, Not, Repository } from 'typeorm';
-import { FixedReservation } from 'src/fixed-reservations/entities/fixed.reservation.entity';
+import { FixedReservation } from 'src/fixed-reservations/entities/fixed-reservation.entity';
 import { isBefore, parse } from 'date-fns';
 import { Court } from 'src/courts/entities/court.entity';
 
@@ -62,7 +62,13 @@ export class ReservationsService {
       //send the user too
       user: {id: user} //<--received from controller
     })
-    return await this.reservationRepo.save(reservation);
+
+    await this.reservationRepo.save(reservation);
+
+    return {
+      message: 'Reserva creada correctamente',
+      reservation,
+    };
   }
 
   async findAll() {
@@ -70,22 +76,35 @@ export class ReservationsService {
   }
 
   async findOne(id: number) {
-    return await this.reservationRepo.findOne(
+    const reservation = await this.reservationRepo.findOne(
       {
         where: {id},
         relations: ['court']
       }
     );
+    if(!reservation){
+      throw new NotFoundException(`Reserva con ID ${id} no encontrada`)
+    }
+
+    return reservation;
   }
 
-  async update(id: number, updateReservationDto: UpdateReservationDto) {
+  async update(id: number, updateReservationDto: UpdateReservationDto, user:number) {
     const reservation = await this.reservationRepo.findOne({
       where: {id},
-      relations: ['court']
+      relations: ['court', 'user']
     })
 
     if(!reservation){
-      throw new NotFoundException(`Reservation with ID ${id} not found`);
+      throw new NotFoundException(`Reserva con ID ${id} no encontrada`);
+    }
+
+    if(!user){
+      throw new ForbiddenException('No tienes permiso para modificar esta reserva')
+    }
+
+    if (!reservation.user || reservation.user.id !== user) {
+      throw new ForbiddenException('No tienes permiso para modificar esta reserva');
     }
 
     if(updateReservationDto.courtId){
@@ -94,7 +113,7 @@ export class ReservationsService {
       })
 
       if(!court){
-        throw new NotFoundException(`Court with ID ${id} not found`);
+        throw new NotFoundException(`Cancha con ID ${id} no encontrada`);
       }
       
       reservation.court = court;
@@ -104,7 +123,6 @@ export class ReservationsService {
     if (updateReservationDto.startTime) reservation.startTime = updateReservationDto.startTime;
     if (updateReservationDto.endTime) reservation.endTime = updateReservationDto.endTime;
 
-    //avoid time conflicts with other reservations
     const overlapping = await this.reservationRepo.findOne({
       where: {
         court: { id: reservation.court.id },
@@ -120,8 +138,27 @@ export class ReservationsService {
       throw new BadRequestException('Ya existe una reserva en ese horario');
     }
 
+    const dayOfWeek = new Date(reservation.date).getDay();//0:sunday, 1:monday...
+    const overlappingFixedReservation = await this.fixedReservationRepo.findOne({
+      where: [
+        {
+          court: { id: reservation.court.id },
+          dayOfWeek,
+          startTime: LessThan(reservation.endTime),
+          endTime: MoreThan(reservation.startTime),
+        },
+      ],
+    });
+    if (overlappingFixedReservation) {
+      throw new BadRequestException('El horario ya está ocupado por una reserva fija');
+    }
+
     //all ok
-    return this.reservationRepo.save(reservation);
+    await this.reservationRepo.save(reservation);
+    return {
+      message: 'Reserva actualizada correctamente',
+      reservation,
+    };
   }
 
   async remove(id: number) {
@@ -130,9 +167,13 @@ export class ReservationsService {
     })
 
     if(!reservation){
-      throw new NotFoundException(`Reservation with ID ${id} not found`);
+      throw new NotFoundException(`Reserva con ID ${id} no encontrada`);
     }
 
-    return this.reservationRepo.remove(reservation)
+    await this.reservationRepo.remove(reservation)
+    return {
+      message: 'Reserva eliminada correctamente',
+      reservation,
+    };
   }
 }

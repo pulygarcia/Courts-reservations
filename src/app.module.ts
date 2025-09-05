@@ -7,6 +7,7 @@ import { typeOrmConfig } from './config/typeOrmConfig';
 import { UsersModule } from './users/users.module';
 import { CourtsModule } from './courts/courts.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { FixedReservationsModule } from './fixed-reservations/fixed-reservations.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ReservationsModule } from './reservations/reservations.module';
     }),
     UsersModule,
     CourtsModule,
-    ReservationsModule
+    ReservationsModule,
+    FixedReservationsModule
   ],
   controllers: [AppController],
   providers: [AppService],
