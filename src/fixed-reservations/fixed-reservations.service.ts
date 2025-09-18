@@ -18,7 +18,7 @@ export class FixedReservationsService {
 
   async create(createFixedReservationDto: CreateFixedReservationDto, user:number) {
     //Transform startTime y endTime to Date object
-    const fillingDate = '2025-01-01';
+    const fillingDate = '2025-01-01';//filling date to compare hours in correct format
     const start = parse(`${fillingDate} ${createFixedReservationDto.startTime}`, 'yyyy-MM-dd HH:mm', new Date());
     const end = parse(`${fillingDate} ${createFixedReservationDto.endTime}`, 'yyyy-MM-dd HH:mm', new Date());
 

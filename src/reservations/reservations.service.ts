@@ -7,6 +7,9 @@ import { LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { FixedReservation } from 'src/fixed-reservations/entities/fixed-reservation.entity';
 import { isBefore, parse } from 'date-fns';
 import { Court } from 'src/courts/entities/court.entity';
+import { sendReservationNotification } from 'src/email/emails';
+import { parseEmailDate } from 'src/utils';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ReservationsService {
@@ -14,6 +17,7 @@ export class ReservationsService {
     @InjectRepository(Reservation) private readonly reservationRepo: Repository<Reservation>,
     @InjectRepository(FixedReservation) private readonly fixedReservationRepo: Repository<FixedReservation>,
     @InjectRepository(Court) private readonly courtRepo: Repository<Court>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
   ){}
 
   async create(createReservationDto: CreateReservationDto, user: number) {
@@ -61,6 +65,15 @@ export class ReservationsService {
       court: {id: createReservationDto.courtId}, //typeorm expect court as an object (with the id value)
       //send the user too
       user: {id: user} //<--received from controller
+    })
+
+    const emailUser = await this.userRepo.findOneBy({id: user});
+    await sendReservationNotification({
+      name: emailUser?.name?? 'Usuario desconocido',
+      courtId: reservation.court.id,
+      date: parseEmailDate(reservation.date),//(EEEE dd/MM/yyyy) for email display
+      startTime: reservation.startTime,
+      endTime: reservation.endTime
     })
 
     await this.reservationRepo.save(reservation);

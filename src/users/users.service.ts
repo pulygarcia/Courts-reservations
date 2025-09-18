@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -18,7 +18,7 @@ export class UsersService {
     async create(createUserDto: CreateUserDto){
         const existingUser = await this.usersRepository.findOneBy({ email: createUserDto.email });
         if (existingUser) {
-            throw new BadRequestException('User with this email already exists');
+            throw new BadRequestException('Ya existe un usuario registrado con ese email');
         }
 
         const user = this.usersRepository.create(createUserDto);
@@ -32,12 +32,12 @@ export class UsersService {
     async login(loginUserDto: LoginUserDto){
         const existingUser = await this.usersRepository.findOneBy({ email: loginUserDto.email });
         if (!existingUser) {
-            throw new UnauthorizedException('User with this email does not exist');
+            throw new UnauthorizedException(`No se encontró ningun usuario registrado con el correo ${loginUserDto.email}`);
         }
 
         const correctPassword = await bcrypt.compare(loginUserDto.password, existingUser.password);
         if(!correctPassword){
-            throw new UnauthorizedException('Wrong password');
+            throw new UnauthorizedException('Contraseña incorrecta');
         }
 
         const payload = { sub: existingUser.id, email: existingUser.email};
@@ -46,5 +46,4 @@ export class UsersService {
             access_token: await this.jwtService.signAsync(payload),
         };
     }
-
 }
