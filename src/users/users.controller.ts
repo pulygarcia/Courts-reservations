@@ -18,4 +18,8 @@ export class UsersController {
     login(@Body() loginUserDto: LoginUserDto) {
         return this.usersService.login(loginUserDto)
     }
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.usersService.findOne(+id)
+    }
 }

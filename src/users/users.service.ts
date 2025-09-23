@@ -32,7 +32,7 @@ export class UsersService {
     async login(loginUserDto: LoginUserDto){
         const existingUser = await this.usersRepository.findOneBy({ email: loginUserDto.email });
         if (!existingUser) {
-            throw new UnauthorizedException(`No se encontró ningun usuario registrado con el correo ${loginUserDto.email}`);
+            throw new NotFoundException(`No se encontró ningun usuario registrado con el correo ${loginUserDto.email}`);
         }
 
         const correctPassword = await bcrypt.compare(loginUserDto.password, existingUser.password);
@@ -45,5 +45,25 @@ export class UsersService {
         return {
             access_token: await this.jwtService.signAsync(payload),
         };
+    }
+
+    async findOne(id: number){
+        const user = await this.usersRepository.findOne({
+            where: {id},
+            relations: ['reservations', 'reservations.court']
+        });
+        if (!user) {
+            throw new NotFoundException(`No se encontró ningun usuario registrado con el id ${id}`);
+        }
+
+        //get date in format YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0];
+
+        //filter expired reservations
+        const upcomingReservations = user.reservations.filter(
+            (res) => res.date >= today
+        );
+
+        return {...user, reservations: upcomingReservations}
     }
 }
