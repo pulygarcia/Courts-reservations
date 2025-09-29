@@ -50,7 +50,7 @@ export class UsersService {
     async findOne(id: number){
         const user = await this.usersRepository.findOne({
             where: {id},
-            relations: ['reservations', 'reservations.court']
+            relations: ['reservations', 'reservations.court', 'fixedReservations']
         });
         if (!user) {
             throw new NotFoundException(`No se encontró ningun usuario registrado con el id ${id}`);
