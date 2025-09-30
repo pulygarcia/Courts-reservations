@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { CourtsModule } from './courts/courts.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { FixedReservationsModule } from './fixed-reservations/fixed-reservations.module';
+import { ChargesModule } from './charges/charges.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { FixedReservationsModule } from './fixed-reservations/fixed-reservations
     UsersModule,
     CourtsModule,
     ReservationsModule,
-    FixedReservationsModule
+    FixedReservationsModule,
+    ChargesModule
   ],
   controllers: [AppController],
   providers: [AppService],

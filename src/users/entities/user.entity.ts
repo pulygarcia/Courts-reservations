@@ -16,6 +16,9 @@ export class User {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  admin?: boolean;
+
   @OneToMany(() => Reservation, (reservation) => reservation.user)
   reservations: Reservation[];
 
