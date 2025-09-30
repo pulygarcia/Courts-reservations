@@ -7,7 +7,7 @@ import { LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { FixedReservation } from 'src/fixed-reservations/entities/fixed-reservation.entity';
 import { isBefore, parse } from 'date-fns';
 import { Court } from 'src/courts/entities/court.entity';
-import { sendReservationNotification } from 'src/email/emails';
+import { sendReservationCancellationNotification, sendReservationNotification } from 'src/email/emails';
 import { parseEmailDate } from 'src/utils';
 import { User } from 'src/users/entities/user.entity';
 
@@ -177,6 +177,7 @@ export class ReservationsService {
   async remove(id: number) {
     const reservation = await this.reservationRepo.findOne({
       where: {id},
+      relations:['court']
     })
 
     if(!reservation){
@@ -184,6 +185,14 @@ export class ReservationsService {
     }
 
     await this.reservationRepo.remove(reservation)
+
+    await sendReservationCancellationNotification({
+      court: reservation.court.name,
+      date: parseEmailDate(reservation.date),//(EEEE dd/MM/yyyy) for email display
+      startTime: reservation.startTime,
+      endTime: reservation.endTime
+    })
+    
     return {
       message: 'Reserva eliminada correctamente',
       reservation,
