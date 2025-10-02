@@ -52,6 +52,7 @@ export class ChargesService {
 
     if (updateChargeDto.name) charge.name = updateChargeDto.name;
     if (updateChargeDto.price) charge.price = updateChargeDto.price;
+    if (updateChargeDto.stock) charge.stock = updateChargeDto.stock;
 
     await this.chargeRepository.save(charge);
 
