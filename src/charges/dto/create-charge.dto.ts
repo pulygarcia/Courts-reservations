@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, Min, IsOptional } from 'class-validator';
 
 export class CreateChargeDto {
   @IsString()
@@ -6,6 +6,11 @@ export class CreateChargeDto {
   name: string;
 
   @IsInt()
-  @Min(0)
+  @Min(500)
   price: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  stock: number;
 }
