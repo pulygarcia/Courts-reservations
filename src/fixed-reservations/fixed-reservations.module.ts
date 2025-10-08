@@ -5,10 +5,11 @@ import { FixedReservation } from './entities/fixed-reservation.entity';
 import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Court } from 'src/courts/entities/court.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports:[
-      TypeOrmModule.forFeature([FixedReservation, Reservation, Court]),
+      TypeOrmModule.forFeature([FixedReservation, Reservation, Court, User]),
     ],
   controllers: [FixedReservationsController],
   providers: [FixedReservationsService],

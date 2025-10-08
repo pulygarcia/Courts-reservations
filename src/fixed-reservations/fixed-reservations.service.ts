@@ -1,12 +1,15 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFixedReservationDto } from './dto/create-fixed-reservation.dto';
 import { UpdateFixedReservationDto } from './dto/update-fixed-reservation.dto';
-import { getDay, isBefore, parse } from 'date-fns';
+import { isBefore, parse } from 'date-fns';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FixedReservation } from './entities/fixed-reservation.entity';
 import { LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { Court } from 'src/courts/entities/court.entity';
+import { sendFixedReservationCancelledNotification, sendFixedReservationNotification } from 'src/email/emails';
+import { User } from 'src/users/entities/user.entity';
+import { weekDays } from 'src/utils';
 
 @Injectable()
 export class FixedReservationsService {
@@ -14,6 +17,7 @@ export class FixedReservationsService {
     @InjectRepository(FixedReservation) private readonly fixedReservationRepo:Repository<FixedReservation>,
     @InjectRepository(Reservation) private readonly reservationRepo:Repository<Reservation>,
     @InjectRepository(Court) private readonly courtRepo:Repository<Court>,
+    @InjectRepository(User) private readonly userRepo:Repository<User>,
   ){}
 
   async create(createFixedReservationDto: CreateFixedReservationDto, user:number) {
@@ -69,12 +73,27 @@ export class FixedReservationsService {
       ...createFixedReservationDto,
       court: {id: createFixedReservationDto.courtId}, //typeorm expect court as an object (with the id value)
       //send the user too
-      user: {id: user} //<--received from controller
+      user: {id: user}
     })
 
     await this.fixedReservationRepo.save(reservation);
+
+    //parse user name and selected day to email format
+    const emailUser = await this.userRepo.findOneBy({id: user});
+    const dayName = weekDays.find(
+      (d) => Number(d.value) === Number(reservation.dayOfWeek)
+    )?.day;
+
+    await sendFixedReservationNotification({
+      name: emailUser?.name?? 'Usuario desconocido',
+      courtId: reservation.court.id,
+      dayOfWeek: dayName!,
+      startTime: reservation.startTime,
+      endTime: reservation.endTime
+    })
+
     return{
-      message: 'Reserva creada correctamente',
+      message: 'Reserva fija creada correctamente',
       reservation
     }
   }
@@ -180,6 +199,7 @@ export class FixedReservationsService {
     const reservation = await this.fixedReservationRepo.findOne(
       {
         where: {id},
+        relations: ['court']
       }
     );
     if(!reservation){
@@ -187,8 +207,19 @@ export class FixedReservationsService {
     }
 
     await this.fixedReservationRepo.remove(reservation);
+
+    const dayName = weekDays.find(
+      (d) => Number(d.value) === Number(reservation.dayOfWeek)
+    )?.day;
+
+    await sendFixedReservationCancelledNotification({
+      court: reservation.court.name,
+      dayOfWeek: dayName!,
+      startTime: reservation.startTime,
+      endTime: reservation.endTime
+    })
     return{
-      message: 'Reserva eliminada correctamente',
+      message: 'Reserva cancelada correctamente',
       reservation
     }
   }
