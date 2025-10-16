@@ -11,6 +11,6 @@ export class Charge {
   @Column("int")
   price: number;
 
-  @Column("int", {nullable: true}) //not necessary in some charge items
+  @Column("int", {nullable: true}) //not necessary in services
   stock: number;
 }

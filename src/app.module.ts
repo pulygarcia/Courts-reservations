@@ -9,6 +9,7 @@ import { CourtsModule } from './courts/courts.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { FixedReservationsModule } from './fixed-reservations/fixed-reservations.module';
 import { ChargesModule } from './charges/charges.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { ChargesModule } from './charges/charges.module';
     CourtsModule,
     ReservationsModule,
     FixedReservationsModule,
-    ChargesModule
+    ChargesModule,
+    SalesModule
   ],
   controllers: [AppController],
   providers: [AppService],
